@@ -1,14 +1,14 @@
-BEGIN:VCALENDAR
+﻿BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//CHRIST University//Internship Partners Conclave 2027//EN
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
 UID:christ-internship-partners-conclave-20270123@christuniversity.in
 DTSTAMP:20261106T100000Z
-DTSTART;VALUE=DATE:20270123
-DTEND;VALUE=DATE:20270124
+DTSTART;TZID=Asia/Kolkata:20270123T090000
+DTEND;TZID=Asia/Kolkata:20270123T133000
 SUMMARY:CHRIST Internship Partners' Conclave 2027
-DESCRIPTION:Save the proposed date. Event timings and final venue details to be confirmed. Partners in Progress: Celebrating Those Who Make a Difference.
+DESCRIPTION:Save the proposed date. Event timing: 9:00 AM to 1:30 PM India time. Final venue details to be confirmed. Partners in Progress: Celebrating Those Who Make a Difference.
 LOCATION:Seminar Hall\, CHRIST (Deemed to be University)\, Pune City Campus\, Pune\, Maharashtra
 STATUS:TENTATIVE
 END:VEVENT

@@ -1,21 +1,78 @@
 const menuToggle = document.querySelector(".menu-toggle");
 const primaryNav = document.querySelector("#primary-nav");
 const currentYear = document.querySelector("#current-year");
+const siteHeader = document.querySelector(".site-header");
 
 if (currentYear) {
   currentYear.textContent = String(new Date().getFullYear());
 }
 
+// Transparent-to-solid header on scroll
+const updateHeaderState = () => {
+  siteHeader.classList.toggle("is-scrolled", window.scrollY > 50);
+};
+window.addEventListener("scroll", updateHeaderState, { passive: true });
+updateHeaderState();
+
+// ── Sliding nav pill ──────────────────────────────────────────
+const navPill = siteHeader.querySelector(".nav-pill");
+const navLinks = Array.from(siteHeader.querySelectorAll(".primary-nav a:not(.nav-register)"));
+const navEl = siteHeader.querySelector(".primary-nav");
+let pillTarget = null; // the link the pill should rest on (active link)
+
+function movePillTo(link) {
+  if (!navPill || !link || !navEl) return;
+  const navRect = navEl.getBoundingClientRect();
+  const linkRect = link.getBoundingClientRect();
+  const padH = 10, padV = 5;
+  navPill.style.left   = (linkRect.left - navRect.left - padH) + "px";
+  navPill.style.top    = (linkRect.top  - navRect.top  - padV) + "px";
+  navPill.style.width  = (linkRect.width  + padH * 2) + "px";
+  navPill.style.height = (linkRect.height + padV * 2) + "px";
+}
+
+function setPillResting() {
+  const active = navLinks.find(l => l.classList.contains("is-active")) || navLinks[0];
+  pillTarget = active;
+  movePillTo(active);
+}
+
+// Hover: slide to hovered link, return to resting on mouseleave
+navLinks.forEach(link => {
+  link.addEventListener("mouseenter", () => movePillTo(link));
+  link.addEventListener("mouseleave", () => { if (pillTarget) movePillTo(pillTarget); });
+  link.addEventListener("focus",      () => movePillTo(link));
+  link.addEventListener("blur",       () => { if (pillTarget) movePillTo(pillTarget); });
+});
+
+// Update pill when active link changes (called after scroll-spy updates)
+function syncPill() {
+  setPillResting();
+}
+
+// Initial position (no transition yet)
+if (navPill) {
+  navPill.style.transition = "none";
+  setPillResting();
+  // Re-enable transition on next frame
+  requestAnimationFrame(() => {
+    navPill.style.transition = "";
+  });
+}
+// ─────────────────────────────────────────────────────────────
+
 menuToggle.addEventListener("click", () => {
   const isExpanded = menuToggle.getAttribute("aria-expanded") === "true";
   menuToggle.setAttribute("aria-expanded", String(!isExpanded));
   primaryNav.classList.toggle("is-open", !isExpanded);
+  siteHeader.classList.toggle("nav-is-open", !isExpanded);
 });
 
 primaryNav.addEventListener("click", (event) => {
   if (event.target.closest("a")) {
     menuToggle.setAttribute("aria-expanded", "false");
     primaryNav.classList.remove("is-open");
+    siteHeader.classList.remove("nav-is-open");
   }
 });
 
@@ -23,13 +80,20 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && menuToggle.getAttribute("aria-expanded") === "true") {
     menuToggle.setAttribute("aria-expanded", "false");
     primaryNav.classList.remove("is-open");
+    siteHeader.classList.remove("nav-is-open");
     menuToggle.focus();
   }
 });
 
 // Set a confirmed ISO timestamp with timezone here to activate the countdown.
-const eventStart = null;
-const countdown = document.querySelector("#countdown");
+const eventStart = "2027-01-23T09:00:00+05:30";
+
+// ── Countdown boxes ───────────────────────────────────────────
+const cdDays  = document.querySelector("#cd-days .countdown-box-num");
+const cdHours = document.querySelector("#cd-hours .countdown-box-num");
+const cdMins  = document.querySelector("#cd-mins .countdown-box-num");
+const cdSecs  = document.querySelector("#cd-secs .countdown-box-num");
+const cdNote  = document.querySelector("#countdown-unset-note");
 
 // Populate these values when the organising team confirms its public contact details and venue.
 const organiserPhone = "";
@@ -66,33 +130,51 @@ const parseEventStart = (value) => {
   return hasValidDate && hasValidOffset ? Date.parse(value) : Number.NaN;
 };
 
-if (countdown && typeof eventStart === "string") {
+(function initCountdown() {
+  const pad = (n) => String(n).padStart(2, "0");
+
+  if (!cdDays || !cdHours || !cdMins || !cdSecs) return;
+
+  if (typeof eventStart !== "string" || !eventStart.trim()) {
+    // No eventStart set — show dashes and note
+    if (cdNote) cdNote.hidden = false;
+    return;
+  }
+
   const target = parseEventStart(eventStart);
 
-  if (Number.isFinite(target)) {
-    let countdownInterval;
-
-    const updateCountdown = () => {
-      const remaining = target - Date.now();
-      if (remaining <= 0) {
-        countdown.textContent = "The conclave is underway";
-        window.clearInterval(countdownInterval);
-        return false;
-      }
-
-      const days = Math.floor(remaining / 86_400_000);
-      const hours = Math.floor((remaining % 86_400_000) / 3_600_000);
-      const minutes = Math.floor((remaining % 3_600_000) / 60_000);
-      const seconds = Math.floor((remaining % 60_000) / 1_000);
-      countdown.textContent = `${days} days · ${hours} hrs · ${minutes} min · ${seconds} sec`;
-      return true;
-    };
-
-    if (updateCountdown()) {
-      countdownInterval = window.setInterval(updateCountdown, 1_000);
-    }
+  if (!Number.isFinite(target)) {
+    // Unparseable value — show dashes and note
+    if (cdNote) cdNote.hidden = false;
+    return;
   }
-}
+
+  // eventStart is valid — hide the note
+  if (cdNote) cdNote.hidden = true;
+
+  let countdownInterval;
+
+  const updateCountdown = () => {
+    const remaining = target - Date.now();
+    if (remaining <= 0) {
+      cdDays.textContent = "00";
+      cdHours.textContent = "00";
+      cdMins.textContent = "00";
+      cdSecs.textContent = "00";
+      window.clearInterval(countdownInterval);
+      return false;
+    }
+    cdDays.textContent  = pad(Math.floor(remaining / 86_400_000));
+    cdHours.textContent = pad(Math.floor((remaining % 86_400_000) / 3_600_000));
+    cdMins.textContent  = pad(Math.floor((remaining % 3_600_000) / 60_000));
+    cdSecs.textContent  = pad(Math.floor((remaining % 60_000) / 1_000));
+    return true;
+  };
+
+  if (updateCountdown()) {
+    countdownInterval = window.setInterval(updateCountdown, 1_000);
+  }
+}());
 
 const sectionLinks = Array.from(
   document.querySelectorAll('.primary-nav a[href^="#"]:not(.nav-register)'),
@@ -136,6 +218,7 @@ if ("IntersectionObserver" in window && sectionLinks.length > 0) {
             link.removeAttribute("aria-current");
           }
         });
+        syncPill(); // keep pill in sync with scroll-spy
       }
     },
     { rootMargin: "-30% 0px -60% 0px", threshold: 0 },
@@ -175,26 +258,51 @@ if (prefersReducedMotion || !("IntersectionObserver" in window)) {
 const pendingContact = document.querySelector("#contact-pending");
 const phoneLink = document.querySelector("#contact-phone");
 const emailLink = document.querySelector("#contact-email");
+const footerPhoneLink = document.querySelector("#footer-contact-phone");
+const footerEmailLink = document.querySelector("#footer-contact-email");
 const configuredValue = (value) => (typeof value === "string" ? value.trim() : "");
 const phone = configuredValue(organiserPhone);
 const email = configuredValue(organiserEmail);
 const mapEmbedUrl = configuredValue(venueMapEmbedUrl);
 const directionsUrl = configuredValue(venueDirectionsUrl);
 
-if (phone && phoneLink) {
-  phoneLink.href = `tel:${phone}`;
-  phoneLink.textContent = phone;
-  phoneLink.hidden = false;
+const showContactLink = (link, href, label) => {
+  if (!link) {
+    return;
+  }
+  link.href = href;
+  link.textContent = label;
+  link.hidden = false;
+};
+
+if (phone) {
+  showContactLink(phoneLink, `tel:${phone}`, phone);
+  showContactLink(footerPhoneLink, `tel:${phone}`, phone);
 }
 
-if (email && emailLink) {
-  emailLink.href = `mailto:${email}`;
-  emailLink.textContent = email;
-  emailLink.hidden = false;
+if (email) {
+  showContactLink(emailLink, `mailto:${email}`, email);
+  showContactLink(footerEmailLink, `mailto:${email}`, email);
 }
 
 if ((phone || email) && pendingContact) {
   pendingContact.hidden = true;
+}
+
+const campusImage = document.querySelector(".campus-photo-image");
+if (campusImage) {
+  const testImage = new Image();
+  testImage.onload = () => {
+    campusImage.hidden = false;
+  };
+  testImage.onerror = () => {
+    campusImage.hidden = true;
+    const campusPhoto = campusImage.closest(".campus-photo");
+    if (campusPhoto) {
+      campusPhoto.classList.add("is-empty");
+    }
+  };
+  testImage.src = campusImage.getAttribute("src");
 }
 
 const venueMap = document.querySelector("#venue-map");
