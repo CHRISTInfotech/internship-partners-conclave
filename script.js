@@ -1,4 +1,4 @@
-const menuToggle = document.querySelector(".menu-toggle");
+﻿const menuToggle = document.querySelector(".menu-toggle");
 const primaryNav = document.querySelector("#primary-nav");
 const currentYear = document.querySelector("#current-year");
 const siteHeader = document.querySelector(".site-header");
@@ -321,4 +321,41 @@ const directionsLink = document.querySelector("#get-directions");
 if (directionsUrl && directionsLink) {
   directionsLink.href = directionsUrl;
   directionsLink.hidden = false;
+}
+
+const backToTopLink = document.querySelector(".back-to-top");
+if (backToTopLink) {
+  const updateBackToTopVisibility = () => {
+    const visible = window.scrollY > 120;
+    backToTopLink.hidden = !visible;
+    backToTopLink.setAttribute("aria-hidden", String(!visible));
+    backToTopLink.tabIndex = visible ? 0 : -1;
+  };
+  window.addEventListener("scroll", updateBackToTopVisibility, { passive: true });
+  updateBackToTopVisibility();
+  backToTopLink.addEventListener("click", (event) => {
+    event.preventDefault();
+    const root = document.documentElement;
+    const previousBehavior = root.style.getPropertyValue("scroll-behavior");
+    const previousPriority = root.style.getPropertyPriority("scroll-behavior");
+    const startY = window.scrollY;
+    const startTime = performance.now();
+    const duration = 900;
+    root.style.setProperty("scroll-behavior", "auto", "important");
+
+    const animateToTop = (time) => {
+      const progress = Math.min((time - startTime) / duration, 1);
+      window.scrollTo(0, Math.round(startY * (1 - progress)));
+
+      if (progress < 1) {
+        requestAnimationFrame(animateToTop);
+      } else if (previousBehavior) {
+        root.style.setProperty("scroll-behavior", previousBehavior, previousPriority);
+      } else {
+        root.style.removeProperty("scroll-behavior");
+      }
+    };
+
+    requestAnimationFrame(animateToTop);
+  });
 }
