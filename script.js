@@ -98,8 +98,8 @@ const cdNote  = document.querySelector("#countdown-unset-note");
 // Populate these values when the organising team confirms its public contact details and venue.
 const organiserPhone = "";
 const organiserEmail = "";
-const venueMapEmbedUrl = "";
-const venueDirectionsUrl = "";
+const venueMapEmbedUrl = "https://www.google.com/maps?q=18.555847,73.913453&z=16&output=embed";
+const venueDirectionsUrl = "https://www.google.com/maps/dir/?api=1&destination=18.555847,73.913453";
 
 const parseEventStart = (value) => {
   const match =
