@@ -787,14 +787,13 @@ h2 { color: var(--ink); font: 700 clamp(32px, 4vw, 48px)/1.18 var(--serif); lett
   justify-content: space-between;
   gap: 20px;
   padding: 20px 8.3%;
-  background: #1d1d1d;
+  background: var(--brand-blue-dark);
   border: 0;
+  border-top: 1px solid rgba(255,255,255,.38);
 }
-.footer-bottom-links { display: flex; flex-wrap: wrap; gap: 11px; align-items: center; }
-.footer-bottom-links a, .copyright a { color: rgba(255,255,255,.82); font-size: 13px; text-decoration: none; }
-.footer-bottom-links span { color: #bd3348; }
-.copyright { color: rgba(255,255,255,.7); font-size: 13px; }
-.footer-bottom-links a:hover, .copyright a:hover { color: var(--gold-light); }
+.copyright { color: #fff; font-size: 13px; }
+.copyright a:hover, .footer-attribution a:hover { color: var(--gold-light); }
+.footer-bottom .copyright a { color: #fff; }
 .footer-column a:focus-visible, .footer-bottom a:focus-visible { outline: 3px solid var(--gold-light); outline-offset: 4px; }
 @media (max-width: 1000px) {
   .footer-column { padding-right: 26px; padding-left: 26px; }
@@ -807,11 +806,11 @@ h2 { color: var(--ink); font: 700 clamp(32px, 4vw, 48px)/1.18 var(--serif); lett
   .footer-column h2 { margin-bottom: 15px; font-size: 20px; }
   .footer-brand .brand-logo { width: 180px; }
   .footer-bottom { align-items: flex-start; flex-direction: column; padding: 18px 24px; }
+  .footer-attribution { align-self: flex-end; }
 }
-.footer-attribution { padding: 0 8.3% 18px; background: #1d1d1d; color: rgba(255,255,255,.56); font-size: 12px; text-align: center; }
-.footer-attribution a { color: rgba(255,255,255,.82); font-weight: 600; text-decoration: none; }
+.footer-attribution { margin: 0; padding: 0; background: transparent; color: #fff; font-size: 12px; text-align: right; }
+.footer-attribution a { color: #fff; font-weight: 600; text-decoration: none; }
 .footer-attribution a:hover { color: var(--gold-light); }
-@media (max-width: 720px) { .footer-attribution { padding: 0 24px 18px; text-align: center; } }
 
 /* Responsive hero layout */
 @media (max-width: 1220px) {
@@ -875,4 +874,11 @@ h2 { color: var(--ink); font: 700 clamp(32px, 4vw, 48px)/1.18 var(--serif); lett
 }
 @media (max-width: 720px) {
   .hero h1 { font-size: clamp(24px, 7.5vw, 38px); line-height: 1.15; }
+}
+.footer-bottom .copyright a:hover { color: var(--gold-light); }
+.footer-bottom-right { display: flex; align-items: center; justify-content: flex-end; gap: 18px; }
+.footer-bottom .back-to-top { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid rgba(255,255,255,.75); border-radius: 50%; color: #fff; font-size: 22px; line-height: 1; text-decoration: none; transition: transform .2s ease, border-color .2s ease; }
+.footer-bottom .back-to-top:hover, .footer-bottom .back-to-top:focus-visible { transform: translateY(-4px); border-color: var(--gold); background: var(--gold); color: #fff; box-shadow: 0 0 14px rgba(242,196,109,.35); }
+@media (max-width: 720px) {
+  .footer-bottom-right { width: 100%; justify-content: flex-end; gap: 14px; }
 }
