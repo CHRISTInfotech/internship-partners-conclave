@@ -360,3 +360,133 @@ if (backToTopLink) {
   });
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM ANIMATIONS  –  vanilla JS, no libraries
+   ═══════════════════════════════════════════════════════════════ */
+(function premiumAnimations() {
+  'use strict';
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── 1. Scroll-progress bar ── */
+  const bar = document.createElement('div');
+  bar.id = 'scroll-progress-bar';
+  document.body.prepend(bar);
+  window.addEventListener('scroll', function () {
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + '%';
+  }, { passive: true });
+
+  /* ── 2. Confetti burst on Register button click ── */
+  var CONFETTI_COLORS = ['#d98600','#f2c46d','#0b1f3a','#fff','#c0392b','#2ecc71'];
+  function spawnConfetti(cx, cy) {
+    if (reduced) return;
+    for (var i = 0; i < 28; i++) {
+      var dot = document.createElement('div');
+      dot.className = 'confetti-dot';
+      dot.style.cssText = [
+        'left:' + cx + 'px',
+        'top:'  + cy + 'px',
+        'background:' + CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+        'margin-left:' + (Math.random() * 80 - 40) + 'px',
+        'animation-duration:' + (0.7 + Math.random() * 0.5) + 's',
+        'animation-delay:'    + (Math.random() * 0.2) + 's'
+      ].join(';');
+      document.body.appendChild(dot);
+      dot.addEventListener('animationend', function () { this.remove(); }, { once: true });
+    }
+  }
+  document.querySelectorAll(
+    '.button-gold, .nav-register, .mobile-register, .footer-action.footer-register'
+  ).forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      spawnConfetti(e.clientX, e.clientY);
+      /* link still navigates — no preventDefault() */
+    });
+  });
+
+  /* ── 3. Staggered slide-in on Recognise / Appreciate / Connect cards ── */
+  var cards = document.querySelectorAll('.intro-principle');
+  if ('IntersectionObserver' in window) {
+    var cardObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          cardObs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    cards.forEach(function (c) { cardObs.observe(c); });
+  } else {
+    cards.forEach(function (c) { c.classList.add('is-visible'); });
+  }
+
+  /* ── 4. Timeline line draws on scroll ── */
+  if (!reduced) {
+    var agendaList = document.querySelector('.agenda-list');
+    if (agendaList) {
+      function updateTimeline() {
+        var rect = agendaList.getBoundingClientRect();
+        var prog = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / rect.height));
+        agendaList.style.setProperty('--tl-progress', prog);
+      }
+      window.addEventListener('scroll', updateTimeline, { passive: true });
+      updateTimeline();
+    }
+  }
+
+  /* ── 4b. LIVE NOW badge — active only during the event on 23 Jan 2027 ──
+     Times are in IST (UTC+05:30). Invisible every other day. */
+  var SESSIONS = [
+    { sel: '.agenda-item:nth-child(1)',  s: '2027-01-23T09:00:00+05:30', e: '2027-01-23T09:30:00+05:30' },
+    { sel: '.agenda-item:nth-child(2)',  s: '2027-01-23T09:30:00+05:30', e: '2027-01-23T09:40:00+05:30' },
+    { sel: '.agenda-item:nth-child(3)',  s: '2027-01-23T09:40:00+05:30', e: '2027-01-23T09:50:00+05:30' },
+    { sel: '.agenda-item:nth-child(4)',  s: '2027-01-23T09:50:00+05:30', e: '2027-01-23T10:10:00+05:30' },
+    { sel: '.agenda-item:nth-child(5)',  s: '2027-01-23T10:10:00+05:30', e: '2027-01-23T10:35:00+05:30' },
+    { sel: '.agenda-item:nth-child(6)',  s: '2027-01-23T10:35:00+05:30', e: '2027-01-23T11:15:00+05:30' },
+    { sel: '.agenda-item:nth-child(7)',  s: '2027-01-23T11:15:00+05:30', e: '2027-01-23T11:30:00+05:30' },
+    { sel: '.agenda-item:nth-child(8)',  s: '2027-01-23T11:30:00+05:30', e: '2027-01-23T12:15:00+05:30' },
+    { sel: '.agenda-item:nth-child(9)',  s: '2027-01-23T12:15:00+05:30', e: '2027-01-23T12:45:00+05:30' },
+    { sel: '.agenda-item:nth-child(10)', s: '2027-01-23T12:45:00+05:30', e: '2027-01-23T13:00:00+05:30' },
+    { sel: '.agenda-item:nth-child(11)', s: '2027-01-23T13:00:00+05:30', e: '2027-01-23T13:15:00+05:30' },
+    { sel: '.agenda-item:nth-child(12)', s: '2027-01-23T13:15:00+05:30', e: '2027-01-23T14:00:00+05:30' }
+  ];
+  function checkLiveSession() {
+    var now = Date.now();
+    SESSIONS.forEach(function (s) {
+      var el = document.querySelector(s.sel);
+      if (!el) return;
+      var live = now >= new Date(s.s).getTime() && now < new Date(s.e).getTime();
+      el.classList.toggle('agenda-item--live-now', live);
+    });
+  }
+  checkLiveSession();
+  setInterval(checkLiveSession, 30000);
+
+  /* ── 5. QR code scanning line ── */
+  var qrCard = document.querySelector('.qr-card');
+  if (qrCard) {
+    var scanLine = document.createElement('div');
+    scanLine.className = 'qr-scan-line';
+    qrCard.appendChild(scanLine);
+  }
+
+  /* ── 6. Campus photo wipe-in + zoom-out ── */
+  var campusPhoto = document.querySelector('.campus-photo');
+  if (campusPhoto) {
+    if ('IntersectionObserver' in window) {
+      var photoObs = new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) {
+          campusPhoto.classList.add('photo-revealed');
+          photoObs.disconnect();
+        }
+      }, { threshold: 0.15 });
+      photoObs.observe(campusPhoto);
+    } else {
+      campusPhoto.classList.add('photo-revealed');
+    }
+  }
+
+}());
+
